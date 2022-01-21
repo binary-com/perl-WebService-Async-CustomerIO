@@ -31,8 +31,10 @@ use WebService::Async::CustomerIO::Trigger;
 use constant {
     TRACKING_END_POINT                => 'https://track.customer.io/api/v1',
     API_END_POINT                     => 'https://api.customer.io/v1/api',
+    BETA_API_END_POINT                => 'https://beta-api.customer.io/v1/api',
     REQUEST_PER_SECOND_LIMIT_TRACKING => 30,
     REQUEST_PER_SECOND_LIMIT_API      => 10,
+    REQUEST_PER_SECOND_LIMIT_BETA_PI  => 10,
 };
 
 =head2 new
@@ -133,6 +135,22 @@ sub api_request {
     });
 }
 
+=head2 beta_api_request
+
+Sending request to Beta API end point.
+
+Usage: C<< beta_api_request($method, $uri, $data) -> future($data) >>
+
+=cut
+
+sub beta_api_request {
+    my ($self, $method, $uri, $data) = @_;
+
+    return $self->beta_api_ratelimiter->acquire->then(sub {
+        $self->_request($method, join(q{/} => (BETA_API_END_POINT, $uri)), $data);
+    });
+}
+
 =head2 api_ratelimiter
 
 Getter returns RateLimmiter for regular API endpoint.
@@ -142,19 +160,7 @@ Getter returns RateLimmiter for regular API endpoint.
 sub api_ratelimiter {
     my ($self) = @_;
 
-    return $self->{api_ratelimiter} if $self->{api_ratelimiter};
-
-    Carp::croak "Can't use rate limiter without a loop" unless $self->loop;
-
-    $self->{api_ratelimiter} =
-        WebService::Async::CustomerIO::RateLimiter->new(
-            limit    => REQUEST_PER_SECOND_LIMIT_API,
-            interval => 1,
-        );
-
-    $self->add_child($self->{api_ratelimiter});
-
-    return $self->{api_ratelimiter};
+    return $self->_ratelimiter(api => REQUEST_PER_SECOND_LIMIT_API);
 }
 
 =head2 tracking_ratelimiter
@@ -166,20 +172,40 @@ Getter returns RateLimmiter for tracking API endpoint.
 sub tracking_ratelimiter {
     my ($self) = @_;
 
-    return $self->{tracking_ratelimiter} if $self->{tracking_ratelimiter};
+    return $self->_ratelimiter(tracking => REQUEST_PER_SECOND_LIMIT_TRACKING);
+}
+
+=head2 beta_api_ratelimiter
+
+Getter returns RateLimmiter for tracking API endpoint.
+
+=cut
+
+sub beta_api_ratelimiter {
+    my ($self) = @_;
+
+    return $self->_ratelimiter(beta => REQUEST_PER_SECOND_LIMIT_TRACKING);
+}
+
+
+sub _ratelimiter {
+    my ($self, $type, $limit) = @_;
+
+    return $self->{$type} if $self->{$type};
 
     Carp::croak "Can't use rate limiter without a loop" unless $self->loop;
 
-    $self->{tracking_ratelimiter} =
+    $self->{$type} =
         WebService::Async::CustomerIO::RateLimiter->new(
-            limit    => REQUEST_PER_SECOND_LIMIT_TRACKING,
+            limit    => $limit,
             interval => 1,
         );
 
-    $self->add_child($self->{tracking_ratelimiter});
+    $self->add_child($self->{$type});
 
-    return $self->{tracking_ratelimiter};
+    return $self->{$type};
 }
+
 
 my %PATTERN_FOR_ERROR = (
     RESOURCE_NOT_FOUND  => qr/^404$/,
@@ -323,9 +349,9 @@ sub add_to_segment {
 
 =head2 remove_from_segment
 
-Remove people from a manual segment.
+remove people from a manual segment.
 
-Usage: C<< remove_from_segment($segment_id, @$customer_ids) -> Future() >>
+usage: c<< remove_from_segment($segment_id, @$customer_ids) -> future() >>
 
 =cut
 
@@ -338,6 +364,35 @@ sub remove_from_segment {
     return $self->tracking_request(POST => "segments/$segment_id/remove_customers", {ids => $customers_ids});
 }
 
+=head2 get_customers_by_email
+
+Query Customer.io API for list of clients, who has requested email address.
+
+
+usage: c<< get_customers_by_email($email)->future([$customer_obj1, ...]) >>
+
+=cut
+sub get_customers_by_email {
+    my ($self, $email) = @_;
+
+    Carp::croak 'Missing required argument: email' unless $email;
+
+    return $self->beta_api_request(GET => "customers?email=$email")->then(sub {
+        my ($resp) = @_;
+
+        if (ref $resp ne 'HASH' || ref $resp->{results} ne 'ARRAY') {
+            return Future->fail('UNEXPECTED_RESPONSE_FORMAT', 'customerio', 'Unexpected response format is recived', $resp);
+        }
+
+        try {
+            my @customers = map { WebService::Async::CustomerIO::Customer->new( $_->%*, api_client => $self)   }  $resp->{results}->@*
+            return Future->done(\@customers);
+        } catch {
+            return Future->fail('UNEXPECTED_RESPONSE_FORMAT', 'customerio', $@, $resp);
+        }
+
+    })
+}
 
 
 
