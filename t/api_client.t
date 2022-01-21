@@ -219,6 +219,27 @@ subtest 'Removing users from segment' => sub {
     like $err, qr/^Invalid value for customers_ids/, "Got error for missing customer ids";
 };
 
+subtest 'Search customers by email' => sub {
+    my $api = WebService::Async::CustomerIO->new(
+        site_id => 'some_site_id',
+        api_key => 'some_api_key',
+    );
+
+    $api = Test::MockObject::Extends->new($api);
+    $api->mock(beta_api_request => sub {
+            Future->done({results => [{
+                            email => 'hugh.mann@example.com',
+                            id => 2,
+                            cio_id => 786433,
+                        }]});
+    });
+
+    my $response = $api->get_customers_by_email('hugh.mann@example.com')->get;
+    is ref $response, 'ARRAY', ' Method returns list';
+    is ref $response->[0], 'WebService::Async::CustomerIO::Customer', 'Object created correctly';
+    is $response->[0]->id, 2,'Object has correct data';
+};
+
 
 done_testing();
 

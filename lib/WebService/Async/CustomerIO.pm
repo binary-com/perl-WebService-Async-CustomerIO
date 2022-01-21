@@ -385,10 +385,10 @@ sub get_customers_by_email {
         }
 
         try {
-            my @customers = map { WebService::Async::CustomerIO::Customer->new( $_->%*, api_client => $self)   }  $resp->{results}->@*
+            my @customers = map { WebService::Async::CustomerIO::Customer->new( $_->%*, api_client => $self)   }  $resp->{results}->@*;
             return Future->done(\@customers);
-        } catch {
-            return Future->fail('UNEXPECTED_RESPONSE_FORMAT', 'customerio', $@, $resp);
+        } catch ($e) {
+            return Future->fail('UNEXPECTED_RESPONSE_FORMAT', 'customerio', $e, $resp);
         }
 
     })
