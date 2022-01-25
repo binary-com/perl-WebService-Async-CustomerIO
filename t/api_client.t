@@ -39,9 +39,11 @@ subtest 'Getters methods' => sub {
     is $api->api_key, 'some_api_key', 'Get api_key';
 
     isa_ok($api->api_ratelimiter, 'WebService::Async::CustomerIO::RateLimiter');
+    isa_ok($api->beta_api_ratelimiter, 'WebService::Async::CustomerIO::RateLimiter');
     isa_ok($api->tracking_ratelimiter, 'WebService::Async::CustomerIO::RateLimiter');
 
     is $api->api_ratelimiter->limit, 10, 'Correct limit for general api';
+    is $api->beta_api_ratelimiter->limit, 10, 'Correct limit for general api';
     is $api->tracking_ratelimiter->limit, 30, 'Correct limit for tracking api';
 };
 
@@ -58,10 +60,12 @@ subtest 'Checking endpoints' => sub {
     $limiter->mock(acquire => sub {Future->done});
     $api->mock(api_ratelimiter => sub {$limiter});
     $api->mock(tracking_ratelimiter => sub {$limiter});
+    $api->mock(beta_api_ratelimiter => sub {$limiter});
 
 
     is $api->tracking_request(GET => 'test')->get, 'https://track.customer.io/api/v1/test', 'Correct end-point for tracking api';
     is $api->api_request(GET => 'test')->get, 'https://api.customer.io/v1/api/test', 'Correct end-point for general api';
+    is $api->beta_api_request(GET => 'test')->get, 'https://beta-api.customer.io/v1/api/test', 'Correct end-point for general api';
 };
 
 subtest 'Making request to api' => sub {

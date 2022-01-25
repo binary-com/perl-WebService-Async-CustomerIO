@@ -34,7 +34,7 @@ use constant {
     BETA_API_END_POINT                => 'https://beta-api.customer.io/v1/api',
     REQUEST_PER_SECOND_LIMIT_TRACKING => 30,
     REQUEST_PER_SECOND_LIMIT_API      => 10,
-    REQUEST_PER_SECOND_LIMIT_BETA_PI  => 10,
+    REQUEST_PER_SECOND_LIMIT_BETA_API  => 10,
 };
 
 =head2 new
@@ -69,7 +69,7 @@ sub _init {
 sub configure {
     my ($self, %args) = @_;
 
-    for my $k (qw(site_id api_key)) {
+    for my $k (qw(site_id api_key api_token)) {
         $self->{$k} = delete $args{$k} if exists $args{$k};
     }
 
@@ -87,6 +87,8 @@ sub site_id {shift->{site_id}}
 =cut
 
 sub api_key {shift->{api_key}}
+
+
 
 =head2 API endpoints:
 
@@ -184,7 +186,7 @@ Getter returns RateLimmiter for tracking API endpoint.
 sub beta_api_ratelimiter {
     my ($self) = @_;
 
-    return $self->_ratelimiter(beta => REQUEST_PER_SECOND_LIMIT_TRACKING);
+    return $self->_ratelimiter(beta => REQUEST_PER_SECOND_LIMIT_BETA_API);
 }
 
 
@@ -215,7 +217,7 @@ my %PATTERN_FOR_ERROR = (
 );
 
 sub _request {
-    my ($self, $method, $uri, $data) = @_;
+    my ($self, $method, $uri, $data, $headers) = @_;
 
     my $body = $data             ? encode_json_utf8($data)
              : $method eq 'POST' ? q{}
@@ -230,6 +232,7 @@ sub _request {
                 content      => $body,
                 content_type => 'application/json',
             ),
+
     )->catch(sub {
         my ($code_msg, $err_type, $response) = @_;
         return Future->fail(@_) unless $err_type && $err_type eq 'http';
