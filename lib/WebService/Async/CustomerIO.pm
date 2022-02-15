@@ -88,6 +88,12 @@ sub site_id {shift->{site_id}}
 
 sub api_key {shift->{api_key}}
 
+=head2 api_key
+
+=cut
+
+sub api_token {shift->{api_token}}
+
 
 
 =head2 API endpoints:
@@ -148,8 +154,15 @@ Usage: C<< beta_api_request($method, $uri, $data) -> future($data) >>
 sub beta_api_request {
     my ($self, $method, $uri, $data) = @_;
 
+    Carp::croak('API token is missed') unless $self->api_token;
+
     return $self->beta_api_ratelimiter->acquire->then(sub {
-        $self->_request($method, join(q{/} => (BETA_API_END_POINT, $uri)), $data);
+        $self->_request(
+            $method,
+            join(q{/} => (BETA_API_END_POINT, $uri)),
+            $data,
+            {authorization => 'Bearer ' . $self->api_token},
+        );
     });
 }
 
@@ -226,15 +239,19 @@ sub _request {
     return $self->_ua->do_request(
             method  => $method,
             uri     => $uri,
-            user    => $self->site_id,
-            pass    => $self->api_key,
+            $headers->{authorization} ? () : (
+                user    => $self->site_id,
+                pass    => $self->api_key,
+            ),
             !defined $body ? () : (
                 content      => $body,
                 content_type => 'application/json',
             ),
+            headers => $headers // {},
 
     )->catch(sub {
         my ($code_msg, $err_type, $response) = @_;
+
         return Future->fail(@_) unless $err_type && $err_type eq 'http';
 
         my $code = $response->code;
