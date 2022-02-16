@@ -30,13 +30,16 @@ subtest 'Getters methods' => sub {
 
     my $test_loop = IO::Async::Loop->new;
     my $api = WebService::Async::CustomerIO->new(
-        site_id => 'some_site_id',
-        api_key => 'some_api_key',
+        site_id   => 'some_site_id',
+        api_key   => 'some_api_key',
+        api_token => 'some_api_token',
     );
     $test_loop->add($api);
 
     is $api->site_id, 'some_site_id', 'Get site_id';
     is $api->api_key, 'some_api_key', 'Get api_key';
+    is $api->api_token, 'some_api_token', 'Get api_token';
+
 
     isa_ok($api->api_ratelimiter, 'WebService::Async::CustomerIO::RateLimiter');
     isa_ok($api->beta_api_ratelimiter, 'WebService::Async::CustomerIO::RateLimiter');
@@ -49,8 +52,9 @@ subtest 'Getters methods' => sub {
 
 subtest 'Checking endpoints' => sub {
     my $api = WebService::Async::CustomerIO->new(
-        site_id => 'some_site_id',
-        api_key => 'some_api_key',
+        site_id   => 'some_site_id',
+        api_key   => 'some_api_key',
+        api_token => 'some_api_token',
     );
 
     $api = Test::MockObject::Extends->new($api);
@@ -70,8 +74,9 @@ subtest 'Checking endpoints' => sub {
 
 subtest 'Making request to api' => sub {
     my $api = WebService::Async::CustomerIO->new(
-        site_id => 'some_site_id',
-        api_key => 'some_api_key',
+        site_id   => 'some_site_id',
+        api_key   => 'some_api_key',
+        api_token => 'some_api_token',
     );
 
     my $ua = Test::MockObject->new();
@@ -111,8 +116,9 @@ subtest 'API error handlig' => sub {
 
     for my $test_case (@test) {
         my $api = WebService::Async::CustomerIO->new(
-            site_id => 'some_site_id',
-            api_key => 'some_api_key',
+            site_id   => 'some_site_id',
+            api_key   => 'some_api_key',
+            api_token => 'some_api_token',
         );
 
         my $ua = Test::MockObject->new();
@@ -134,8 +140,9 @@ subtest 'API error handlig' => sub {
 
 subtest 'Handling no JSON respose' => sub {
     my $api = WebService::Async::CustomerIO->new(
-        site_id => 'some_site_id',
-        api_key => 'some_api_key',
+        site_id   => 'some_site_id',
+        api_key   => 'some_api_key',
+        api_token => 'some_api_token',
     );
 
     my $ua = Test::MockObject->new();
@@ -156,8 +163,9 @@ subtest 'Handling no JSON respose' => sub {
 
 subtest 'Emit anonymous event' => sub {
     my $api = WebService::Async::CustomerIO->new(
-        site_id => 'some_site_id',
-        api_key => 'some_api_key',
+        site_id   => 'some_site_id',
+        api_key   => 'some_api_key',
+        api_token => 'some_api_token',
     );
 
     $api = Test::MockObject::Extends->new($api);
@@ -176,8 +184,9 @@ subtest 'Emit anonymous event' => sub {
 
 subtest 'Adding users to segment' => sub {
     my $api = WebService::Async::CustomerIO->new(
-        site_id => 'some_site_id',
-        api_key => 'some_api_key',
+        site_id   => 'some_site_id',
+        api_key   => 'some_api_key',
+        api_token => 'some_api_token',
     );
 
     $api = Test::MockObject::Extends->new($api);
@@ -201,8 +210,9 @@ subtest 'Adding users to segment' => sub {
 
 subtest 'Removing users from segment' => sub {
     my $api = WebService::Async::CustomerIO->new(
-        site_id => 'some_site_id',
-        api_key => 'some_api_key',
+        site_id   => 'some_site_id',
+        api_key   => 'some_api_key',
+        api_token => 'some_api_token',
     );
 
     $api = Test::MockObject::Extends->new($api);
@@ -225,8 +235,9 @@ subtest 'Removing users from segment' => sub {
 
 subtest 'Search customers by email' => sub {
     my $api = WebService::Async::CustomerIO->new(
-        site_id => 'some_site_id',
-        api_key => 'some_api_key',
+        site_id   => 'some_site_id',
+        api_key   => 'some_api_key',
+        api_token => 'some_api_token',
     );
 
     $api = Test::MockObject::Extends->new($api);
