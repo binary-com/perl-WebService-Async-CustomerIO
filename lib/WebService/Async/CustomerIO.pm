@@ -49,6 +49,8 @@ Parameters:
 
 =item * C<api_key>
 
+=item * C<api_token>
+
 =back
 
 =cut
