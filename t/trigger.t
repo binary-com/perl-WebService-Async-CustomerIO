@@ -45,8 +45,9 @@ subtest 'Api Methods tests' => sub {
     my $time = time;
     subtest 'activate' => sub {
         my $api = WebService::Async::CustomerIO->new(
-            site_id => 'some_site_id',
-            api_key => 'some_api_key',
+            site_id   => 'some_site_id',
+            api_key   => 'some_api_key',
+            api_token => 'some_api_key'
         );
 
         $api = Test::MockObject::Extends->new($api);
@@ -55,6 +56,7 @@ subtest 'Api Methods tests' => sub {
         my $trigger = WebService::Async::CustomerIO::Trigger->new(
             campaign_id => 'some_id',
             api_client  => $api,
+            api_token   => 'some_api_key'
         );
 
         is $trigger->id, undef, 'id is empty before request';
@@ -65,8 +67,9 @@ subtest 'Api Methods tests' => sub {
 
     subtest 'find' => sub {
         my $api = WebService::Async::CustomerIO->new(
-            site_id => 'some_site_id',
-            api_key => 'some_api_key',
+            site_id   => 'some_site_id',
+            api_key   => 'some_api_key',
+            api_token => 'some_api_key'
         );
 
         $api = Test::MockObject::Extends->new($api);
@@ -80,8 +83,9 @@ subtest 'Api Methods tests' => sub {
 
     subtest 'get_errors' => sub {
         my $api = WebService::Async::CustomerIO->new(
-            site_id => 'some_site_id',
-            api_key => 'some_api_key',
+            site_id   => 'some_site_id',
+            api_key   => 'some_api_key',
+            api_token => 'some_api_key'
         );
 
         $api = Test::MockObject::Extends->new($api);

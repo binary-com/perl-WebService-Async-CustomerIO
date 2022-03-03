@@ -9,7 +9,6 @@ use Test::MockObject::Extends;
 use Future;
 use IO::Async::Loop;
 
-use lib "/home/git/binary-com/perl-WebService-Async-CustomerIO/lib/";    # use the parent directory
 use WebService::Async::CustomerIO;
 use JSON::MaybeUTF8 qw(:v1);
 
