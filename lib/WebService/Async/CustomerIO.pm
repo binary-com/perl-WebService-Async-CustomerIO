@@ -58,7 +58,7 @@ Parameters:
 sub _init {
     my ($self, $args) = @_;
 
-    for my $k (qw(site_id api_key)) {
+    for my $k (qw(site_id api_key api_token)) {
         Carp::croak "Missing required argument: $k" unless exists $args->{$k};
         $self->{$k} = delete $args->{$k} if exists $args->{$k};
     }
@@ -88,12 +88,11 @@ sub site_id {shift->{site_id}}
 
 sub api_key {shift->{api_key}}
 
-=head2 api_key
+=head2 api_token
 
 =cut
 
 sub api_token {shift->{api_token}}
-
 
 
 =head2 API endpoints:
@@ -388,10 +387,10 @@ sub remove_from_segment {
 
 Query Customer.io API for list of clients, who has requested email address.
 
-
 usage: c<< get_customers_by_email($email)->future([$customer_obj1, ...]) >>
 
 =cut
+
 sub get_customers_by_email {
     my ($self, $email) = @_;
 
