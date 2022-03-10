@@ -105,7 +105,8 @@ you need to use:
 =item * C<Tracking API> - Behavioral Tracking API is used to identify and track
 customer data with Customer.io.
 
-=item * C<Regular API> - Currently, this endpoint is only used for sending
+=item * C<Regular API> - Currently, this endpoint is used to fetch list of customers
+given an email and for sending
 L<API triggered broadcasts|https://customer.io/docs/api-triggered-broadcast-setup>.
 
 =back
