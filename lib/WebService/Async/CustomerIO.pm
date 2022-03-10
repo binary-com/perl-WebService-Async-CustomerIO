@@ -23,6 +23,7 @@ use Future;
 use Net::Async::HTTP;
 use Carp qw();
 use JSON::MaybeUTF8 qw(:v1);
+use URI::Escape;
 
 use WebService::Async::CustomerIO::Customer;
 use WebService::Async::CustomerIO::RateLimiter;
@@ -378,7 +379,7 @@ sub get_customers_by_email {
 
     Carp::croak 'Missing required argument: email' unless $email;
 
-    return $self->api_request(GET => "customers?email=$email")->then(
+    return $self->api_request(GET => "customers?email=".uri_escape_utf8($email))->then(
         sub {
             my ($resp) = @_;
 
