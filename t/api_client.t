@@ -88,7 +88,7 @@ subtest 'Checking endpoints' => sub {
     $api->mock(tracking_ratelimiter => sub { $limiter });
 
     is $api->tracking_request(GET => 'test')->get, 'https://track.customer.io/api/v1/test', 'Correct end-point for tracking api';
-    is $api->api_request(GET => 'test')->get,      'https://api.customer.io/v1/api/test',   'Correct end-point for general api';
+    is $api->api_request(GET => 'test')->get,      'https://api.customer.io/v1/test',   'Correct end-point for general api';
 };
 
 subtest 'Making request to api' => sub {

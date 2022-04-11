@@ -31,7 +31,7 @@ use WebService::Async::CustomerIO::Trigger;
 
 use constant {
     TRACKING_END_POINT                => 'https://track.customer.io/api/v1',
-    API_END_POINT                     => 'https://api.customer.io/v1/api',
+    API_END_POINT                     => 'https://api.customer.io/v1',
     REQUEST_PER_SECOND_LIMIT_TRACKING => 30,
     REQUEST_PER_SECOND_LIMIT_API      => 10,
 };
@@ -97,8 +97,8 @@ sub api_token { shift->{api_token} }
 
 =head2 API endpoints:
 
-There is 2 stable API for Customer.io, if you need to add a new method check 
-the L<documentation for API|https://customer.io/docs/api/> which endpoint 
+There is 2 stable API for Customer.io, if you need to add a new method check
+the L<documentation for API|https://customer.io/docs/api/> which endpoint
 you need to use:
 
 =over 4
@@ -295,20 +295,6 @@ sub new_trigger {
     my ($self, %param) = @_;
 
     return WebService::Async::CustomerIO::Trigger->new(%param, api_client => $self);
-}
-
-=head2 find_trigger
-
-Retrieving trigger object from API
-
-Usage: C<< find_trigger($campaing_idm, $trigger_id) -> obj >>
-
-=cut
-
-sub find_trigger {
-    my ($self, $campaign_id, $trigger_id) = @_;
-
-    return WebService::Async::CustomerIO::Trigger->find($self, $campaign_id, $trigger_id);
 }
 
 =head2 new_customer
