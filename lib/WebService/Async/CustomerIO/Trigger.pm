@@ -73,7 +73,7 @@ sub activate {
     Carp::croak 'This trigger is already activated' if $self->id;
 
     my $campaign_id = $self->campaign_id;
-    return $self->api->api_request('POST', "campaigns/$campaign_id/triggers", $params)->then(
+    return $self->api->api_request('POST', "campaigns/$campaign_id/triggers", $params, 'trigger')->then(
         sub {
             my ($response) = @_;
 

@@ -32,8 +32,11 @@ use WebService::Async::CustomerIO::Trigger;
 use constant {
     TRACKING_END_POINT                => 'https://track.customer.io/api/v1',
     API_END_POINT                     => 'https://api.customer.io/v1',
-    REQUEST_PER_SECOND_LIMIT_TRACKING => 30,
-    REQUEST_PER_SECOND_LIMIT_API      => 10,
+    RATE_LIMITS => {
+        track   => {limit =>30, interval => 1},
+        api     => {limit => 10, interval => 1},
+        trigger => {limit => 1, interval => 10},  # https://www.customer.io/docs/api/#operation/triggerBroadcast
+    }
 };
 
 =head2 new
@@ -122,7 +125,7 @@ Usage: C<< tracking_request($method, $uri, $data) -> future($data) >>
 
 sub tracking_request {
     my ($self, $method, $uri, $data) = @_;
-    return $self->tracking_ratelimiter->acquire->then(
+    return $self->ratelimiter('track')->acquire->then(
         sub {
             $self->_request($method, join(q{/} => (TRACKING_END_POINT, $uri)), $data);
         });
@@ -130,62 +133,35 @@ sub tracking_request {
 
 =head2 api_request
 
-Sending request to Regular API end point.
+Sending request to Regular API end point with optional limit type.
 
-Usage: C<< api_request($method, $uri, $data) -> future($data) >>
+Usage: C<< api_request($method, $uri, $data, $limit_type) -> future($data) >>
 
 =cut
 
 sub api_request {
-    my ($self, $method, $uri, $data) = @_;
+    my ($self, $method, $uri, $data, $limit_type) = @_;
 
     Carp::croak('API token is missed') unless $self->api_token;
 
-    return $self->api_ratelimiter->acquire->then(
+    return $self->ratelimiter($limit_type // 'api')->acquire->then(
         sub {
             $self->_request($method, join(q{/} => (API_END_POINT, $uri)), $data, {authorization => 'Bearer ' . $self->api_token},);
         });
 }
 
-=head2 api_ratelimiter
+sub ratelimiter {
+    my ($self, $type) = @_;
 
-Getter returns RateLimmiter for regular API endpoint.
-
-=cut
-
-sub api_ratelimiter {
-    my ($self) = @_;
-
-    return $self->_ratelimiter(api => REQUEST_PER_SECOND_LIMIT_API);
-}
-
-=head2 tracking_ratelimiter
-
-Getter returns RateLimmiter for tracking API endpoint.
-
-=cut
-
-sub tracking_ratelimiter {
-    my ($self) = @_;
-
-    return $self->_ratelimiter(tracking => REQUEST_PER_SECOND_LIMIT_TRACKING);
-}
-
-sub _ratelimiter {
-    my ($self, $type, $limit) = @_;
-
-    return $self->{$type} if $self->{$type};
+    return $self->{ratelimiters}{$type} if $self->{ratelimiters}{$type};
 
     Carp::croak "Can't use rate limiter without a loop" unless $self->loop;
 
-    $self->{$type} = WebService::Async::CustomerIO::RateLimiter->new(
-        limit    => $limit,
-        interval => 1,
-    );
+    $self->{ratelimiters}{$type} = WebService::Async::CustomerIO::RateLimiter->new(RATE_LIMITS->{$type}->%*);
 
-    $self->add_child($self->{$type});
+    $self->add_child($self->{ratelimiters}{$type});
 
-    return $self->{$type};
+    return $self->{ratelimiters}{$type};
 }
 
 my %PATTERN_FOR_ERROR = (
