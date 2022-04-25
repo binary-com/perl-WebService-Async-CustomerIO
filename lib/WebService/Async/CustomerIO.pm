@@ -97,8 +97,8 @@ sub api_token { shift->{api_token} }
 
 =head2 API endpoints:
 
-There is 2 stable API for Customer.io, if you need to add a new method check 
-the L<documentation for API|https://customer.io/docs/api/> which endpoint 
+There is 2 stable API for Customer.io, if you need to add a new method check
+the L<documentation for API|https://customer.io/docs/api/> which endpoint
 you need to use:
 
 =over 4
@@ -108,7 +108,7 @@ customer data with Customer.io.
 
 =item * C<Regular API> - Currently, this endpoint is used to fetch list of customers
 given an email and for sending
-L<API triggered broadcasts|https://customer.io/docs/api-triggered-broadcast-setup>.
+L<API triggered broadcasts|https://customer.io/docs/api-triggered-broadcast-setup>
 
 =back
 
@@ -379,7 +379,7 @@ sub get_customers_by_email {
 
     Carp::croak 'Missing required argument: email' unless $email;
 
-    return $self->api_request(GET => "customers?email=".uri_escape_utf8($email))->then(
+    return $self->api_request(GET => "customers?email=" . uri_escape_utf8($email))->then(
         sub {
             my ($resp) = @_;
 
