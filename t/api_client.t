@@ -289,4 +289,3 @@ subtest 'Search customers by email' => sub {
 };
 
 done_testing();
-
