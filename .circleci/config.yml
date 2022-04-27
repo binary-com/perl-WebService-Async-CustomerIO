@@ -1,29 +1,38 @@
 version: 2.1
-
+orbs:
+  docker: circleci/docker@1.4.0
 jobs:
-  build:
+  run_tests:
     docker:
-      - image: regentmarkets/debian-perl:stretch-5.26.2
+      - image: deriv/dzil:latest
+        entrypoint: /bin/bash
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - cpanfile_v1-{{ arch }}-{{ checksum "cpanfile" }}
       - run:
-          name: Install library dependencies
-          command: apt-get update && apt-get install -y --no-install-recommends libssl-dev zlib1g-dev pkg-config
+          name: Install deps
+          command: |
+            cpanm -l deps --installdeps -n .
+            dzil authordeps | cpanm -l deps -n
+      - save_cache:
+          key: cpanfile_v1-{{ arch }}-{{ checksum "cpanfile" }}
+          paths:
+            - deps
       - run:
-          name: Install dzil
-          command: cpanm --quiet --notest Dist::Zilla Dist::Zilla::App::Command::cover Devel::Cover::Report::Codecov
+          name: Run test
+          command: |
+            export PERL5LIB=$(pwd)/deps/lib/perl5:$(pwd)/deps/lib/perl5/$(perl -MConfig -le'print $Config{archname}'):$PERL5LIB
+            dzil test
       - run:
-          name: Install dzil author deps
-          command: cpanm --quiet --notest $(dzil authordeps --missing)
-      - run:
-          name: Install distribution deps
-          command: cpanm --quiet --notest $(dzil listdeps --author --missing)
-      - run:
-          name: Run smoke test
-          command: dzil smoke --release --author
-      - run:
-          name: Run coverage test
-          command: dzil cover -test -report codecov
-      - run:
-          name: Run extended author test
-          command: dzil xtest
+          name: Author tests
+          command: |
+            export PERL5LIB=$(pwd)/deps/lib/perl5:$(pwd)/deps/lib/perl5/$(perl -MConfig -le'print $Config{archname}'):$PERL5LIB
+            dzil xtest
+
+workflows:
+  version: 2
+  build-workflow:
+    jobs:
+      - run_tests
