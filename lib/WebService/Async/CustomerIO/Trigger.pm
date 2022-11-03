@@ -59,7 +59,7 @@ sub id { return shift->{id} }
 
 =cut
 
-sub campaign_id {return shift->{campaign_id} }
+sub campaign_id { return shift->{campaign_id} }
 
 =head2 activate
 
@@ -101,7 +101,7 @@ sub status {
 
     Carp::croak 'This trigger has not been activated yet' unless $self->id;
 
-    return $self->api->api_request(GET => 'campaigns/'.$self->campaign_id.'/triggers/'.$self->id);
+    return $self->api->api_request(GET => 'campaigns/' . $self->campaign_id . '/triggers/' . $self->id);
 }
 
 =head2 get_errors

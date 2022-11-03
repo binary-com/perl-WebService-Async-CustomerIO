@@ -21,7 +21,7 @@ use mro;
 use Syntax::Keyword::Try;
 use Future;
 use Net::Async::HTTP;
-use Carp qw();
+use Carp            qw();
 use JSON::MaybeUTF8 qw(:v1);
 use URI::Escape;
 
@@ -30,14 +30,22 @@ use WebService::Async::CustomerIO::RateLimiter;
 use WebService::Async::CustomerIO::Trigger;
 
 use constant {
-    TRACKING_END_POINT                => 'https://track.customer.io/api/v1',
-    API_END_POINT                     => 'https://api.customer.io/v1',
-    RATE_LIMITS => {
-        track   => {limit =>30, interval => 1},
-        api     => {limit => 10, interval => 1},
-        trigger => {limit => 1, interval => 10},  # https://www.customer.io/docs/api/#operation/triggerBroadcast
-    }
-};
+    TRACKING_END_POINT => 'https://track.customer.io/api/v1',
+    API_END_POINT      => 'https://api.customer.io/v1',
+    RATE_LIMITS        => {
+        track => {
+            limit    => 30,
+            interval => 1
+        },
+        api => {
+            limit    => 10,
+            interval => 1
+        },
+        trigger => {
+            limit    => 1,
+            interval => 10
+        },    # https://www.customer.io/docs/api/#operation/triggerBroadcast
+    }};
 
 =head2 new
 
@@ -84,19 +92,19 @@ sub configure {
 
 =cut
 
-sub site_id {return shift->{site_id} }
+sub site_id { return shift->{site_id} }
 
 =head2 api_key
 
 =cut
 
-sub api_key {return shift->{api_key} }
+sub api_key { return shift->{api_key} }
 
 =head2 api_token
 
 =cut
 
-sub api_token {return shift->{api_token} }
+sub api_token { return shift->{api_token} }
 
 =head2 API endpoints:
 
@@ -341,7 +349,7 @@ sub get_customers_by_email {
 
     Carp::croak 'Missing required argument: email' unless $email;
 
-    return $self->api_request(GET => "customers?email=".uri_escape_utf8($email))->then(
+    return $self->api_request(GET => "customers?email=" . uri_escape_utf8($email))->then(
         sub {
             my ($resp) = @_;
 

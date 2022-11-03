@@ -75,7 +75,7 @@ sub created_at { return shift->{created_at} }
 
 =cut
 
-sub attributes {return shift->{attributes} }
+sub attributes { return shift->{attributes} }
 
 =head2 upsert
 
