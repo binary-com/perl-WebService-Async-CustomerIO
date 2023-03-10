@@ -41,6 +41,10 @@ use constant {
             limit    => 10,
             interval => 1
         },
+        transactional => {
+            limit    => 100,
+            interval => 1
+        },
         trigger => {
             limit    => 1,
             interval => 10
@@ -365,6 +369,23 @@ sub get_customers_by_email {
             }
 
         });
+}
+
+=head2 send_transactional
+
+=cut
+
+sub send_transactional {
+    my ($self, $data) = @_;
+    Carp::croak "Missing required attribute: $_" unless $data->{$_} 
+        for qw/transactional_message_id to identifiers/;
+    Carp::croak 'Missing required attribute: identifiers value' 
+        unless (ref $data->{identifiers} ne 'HASH' 
+                || $data->{identifiers}->{id} 
+                || $data->{identifiers}->{email}
+                || $data->{identifiers}->{cio});
+    
+    return $self->api_request(POST => "send/email", $data, 'transactional');
 }
 
 1;
