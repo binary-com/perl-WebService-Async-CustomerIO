@@ -85,7 +85,7 @@ sub _init {
 sub configure {
     my ($self, %args) = @_;
 
-    for my $k (qw(site_id api_key api_token)) {
+    for my $k (qw(site_id api_key api_token api_uri track_uri)) {
         $self->{$k} = delete $args{$k} if exists $args{$k};
     }
 
@@ -109,6 +109,18 @@ sub api_key { return shift->{api_key} }
 =cut
 
 sub api_token { return shift->{api_token} }
+
+=head2 api_uri
+
+=cut
+
+sub api_uri { return shift->{api_uri} }
+
+=head2 track_uri
+
+=cut
+
+sub track_uri { return shift->{track_uri} }
 
 =head2 API endpoints:
 
@@ -139,7 +151,7 @@ sub tracking_request {
     my ($self, $method, $uri, $data) = @_;
     return $self->ratelimiter('track')->acquire->then(
         sub {
-            $self->_request($method, join(q{/} => (TRACKING_END_POINT, $uri)), $data);
+            $self->_request($method, join(q{/} => (($self->track_uri // TRACKING_END_POINT), $uri)), $data);
         });
 }
 
@@ -158,7 +170,7 @@ sub api_request {
 
     return $self->ratelimiter($limit_type // 'api')->acquire->then(
         sub {
-            $self->_request($method, join(q{/} => (API_END_POINT, $uri)), $data, {authorization => 'Bearer ' . $self->api_token},);
+            $self->_request($method, join(q{/} => (($self->api_uri // API_END_POINT), $uri)), $data, {authorization => 'Bearer ' . $self->api_token},);
         });
 }
 
@@ -377,8 +389,9 @@ sub get_customers_by_email {
 
 sub send_transactional {
     my ($self, $data) = @_;
-    Carp::croak "Missing required attribute: $_" unless $data->{$_} 
-        for qw/transactional_message_id to identifiers/;
+    for my $attribute (qw/transactional_message_id to identifiers/) { 
+        Carp::croak "Missing required attribute: $attribute" unless $data->{$attribute};
+    }
     Carp::croak 'Missing required attribute: identifiers value' 
         unless (ref $data->{identifiers} ne 'HASH' 
                 || $data->{identifiers}->{id} 
